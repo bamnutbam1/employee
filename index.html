@@ -320,7 +320,17 @@
                 </div>
             </div>
 
-            <h2 class="text-lg font-bold mb-4 border-b pb-2"><i class="fas fa-list-alt mr-2"></i>ประวัติการทำงานและค่าจ้าง</h2>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b pb-2 gap-2">
+                <h2 class="text-lg font-bold"><i class="fas fa-list-alt mr-2"></i>ประวัติการทำงานและค่าจ้าง</h2>
+                <div class="flex gap-2">
+                    <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center gap-1 transition shadow-sm">
+                        <i class="fas fa-file-excel"></i> โหลด Excel
+                    </button>
+                    <a href="https://docs.google.com/spreadsheets/d/1untWAf5J8HNmNILJCv6W0CSDb4V23cZ2qz4b6eORG38/edit" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center gap-1 transition shadow-sm">
+                        <i class="fas fa-external-link-alt"></i> ดูชีท
+                    </a>
+                </div>
+            </div>
             
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -450,11 +460,24 @@
         let empChartInstance = null;
         let typeChartInstance = null;
 
+        // โหลดข้อมูลจาก LocalStorage เพื่อไม่ให้หายเวลารีเฟรชหน้า
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('dailyWageRecords');
+            if (saved) {
+                records = JSON.parse(saved);
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('dailyWageRecords', JSON.stringify(records));
+        }
+
         // Initialization
         document.getElementById('workDate').valueAsDate = new Date();
         document.getElementById('bulkDate').valueAsDate = new Date();
+        loadFromLocalStorage(); // โหลดข้อมูลเก่ามาแสดง
         updateCalculations();
-        updateDashboard();
+        renderTable(); // วาดตารางและกราฟตอนเริ่ม
         addBulkRow(); // เพิ่มแถวตั้งต้นในโหมดกลุ่ม 1 แถว
 
         // สลับแท็บโหมดการบันทึก
@@ -812,6 +835,7 @@
 
             // เอาข้อมูลใส่ตารางหน้าจอ Local ก่อนทันที เพื่อความรวดเร็วของ UX
             pendingSaveData.forEach(rec => records.unshift(rec));
+            saveToLocalStorage(); // บันทึกลงเครื่อง
             renderTable();
 
             // ทยอยส่งทีละแถวให้ Google Sheets (วิธีนี้ปลอดภัย ไม่ต้องแก้ฝั่ง Apps Script)
@@ -913,8 +937,49 @@
         function deleteRecord(id) {
             if(confirm('ต้องการลบข้อมูลนี้ใช่หรือไม่? (การลบที่นี่จะไม่ลบใน Google Sheets)')) {
                 records = records.filter(r => r.id !== id);
+                saveToLocalStorage(); // อัปเดตข้อมูลในเครื่อง
                 renderTable();
             }
+        }
+
+        // ฟังก์ชัน Export Excel (CSV)
+        function exportToExcel() {
+            if (records.length === 0) {
+                alert('ไม่มีข้อมูลให้ดาวน์โหลด');
+                return;
+            }
+            
+            // สร้าง Header ของ CSV
+            let csvContent = "\uFEFF"; // ใส่ BOM เพื่อให้ Excel อ่านภาษาไทยได้
+            csvContent += "วันที่,ชื่อพนักงาน,เวลาทำงาน,ชม.รวม,ชม.ปกติ,ชม.OT,ค่าแรงปกติ,ค่า OT,ยอดเบิก,ยอดสุทธิ\n";
+
+            // สร้างข้อมูลแต่ละแถว
+            records.forEach(r => {
+                let displayTimeText = r.displayTime.replace(/<br>/g, ' / ').replace(/<[^>]+>/g, ''); // ลบ HTML Tags ออก
+                let row = [
+                    formatThaiDate(r.date),
+                    `"${r.name}"`,
+                    `"${displayTimeText}"`,
+                    r.totalHours.toFixed(1),
+                    r.regHours.toFixed(1),
+                    r.otHours.toFixed(1),
+                    r.baseWage,
+                    r.otPay,
+                    r.advancePay,
+                    r.totalPay
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            // สร้างไฟล์และดาวน์โหลด
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `รายงานค่าจ้าง_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function openPrintModal(id) {
