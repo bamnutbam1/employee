@@ -62,7 +62,6 @@
 </head>
 <body class="text-gray-800">
 
-    <!-- Navbar -->
     <nav class="bg-blue-600 text-white shadow-md p-4">
         <div class="container mx-auto flex items-center gap-3">
             <i class="fas fa-calculator text-2xl"></i>
@@ -70,13 +69,10 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <div class="container mx-auto p-4 lg:flex lg:gap-6 mt-4">
         
-        <!-- Left Column: Form & Tabs -->
         <div class="bg-white p-6 rounded-lg shadow-md lg:w-1/3 mb-6 lg:mb-0 h-fit">
             
-            <!-- ระบบ Tabs (แยกโหมดบันทึกเดี่ยว vs โหมดกลุ่ม) -->
             <div class="flex space-x-1 mb-5 border-b">
                 <button id="tabBtnSingle" onclick="switchTab('single')" class="flex-1 py-2 px-1 border-b-2 border-blue-600 font-bold text-blue-600 text-xs sm:text-sm transition flex items-center justify-center gap-1 text-center">
                     <i class="fas fa-user-clock"></i> รายวัน
@@ -89,9 +85,6 @@
                 </button>
             </div>
 
-            <!-- ==============================
-                 โหมด 1: บันทึกรายบุคคล (ละเอียด)
-                 ============================== -->
             <div id="singleModeContainer">
                 <form id="wageForm" class="space-y-4">
                     <div>
@@ -115,9 +108,7 @@
                         </div>
                     </div>
 
-                    <!-- Time Inputs Section -->
                     <div class="space-y-3">
-                        <!-- ช่วงที่ 1 -->
                         <div class="p-3 border rounded-md bg-gray-50">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="block text-sm font-bold text-blue-700">กะที่ 1</label>
@@ -137,13 +128,11 @@
                             </div>
                         </div>
 
-                        <!-- Checkbox for Shift 2 -->
                         <div class="flex items-center px-1">
                             <input type="checkbox" id="hasShift2" class="mr-2 w-4 h-4 text-blue-600 rounded" onchange="toggleShift2(); updateCalculations()">
                             <label for="hasShift2" class="text-sm font-medium text-gray-700 cursor-pointer">มีช่วงเวลาทำงานที่ 2 (หลังพัก)</label>
                         </div>
 
-                        <!-- ช่วงที่ 2 -->
                         <div id="shift2Container" class="p-3 border rounded-md bg-orange-50 hidden">
                             <label class="block text-sm font-bold text-orange-600 mb-2">กะที่ 2 (หลังพัก)</label>
                             <div class="grid grid-cols-2 gap-4">
@@ -159,13 +148,11 @@
                         </div>
                     </div>
 
-                    <!-- ช่องเบิกเงิน -->
                     <div class="pt-2">
                         <label class="block text-sm font-medium mb-1 text-red-600"><i class="fas fa-hand-holding-usd mr-1"></i>เบิกเงินระหว่างวัน (บาท)</label>
                         <input type="number" id="advancePay" value="0" min="0" class="w-full border rounded p-2 focus:outline-none focus:border-red-500 bg-red-50" onchange="updateCalculations()" placeholder="ถ้ารับเงินไปก่อนให้ใส่ที่นี่">
                     </div>
 
-                    <!-- Live Preview Box -->
                     <div class="bg-gray-50 p-4 rounded border border-gray-200 mt-4">
                         <h3 class="text-sm font-bold text-gray-600 mb-2">สรุปการคำนวณเบื้องต้น</h3>
                         <div class="grid grid-cols-2 gap-2 text-sm">
@@ -194,9 +181,6 @@
                 </form>
             </div>
 
-            <!-- ==============================
-                 โหมด 2: บันทึกกลุ่ม (เหมาจ่าย/หลายคน)
-                 ============================== -->
             <div id="bulkModeContainer" class="hidden space-y-4">
                 <div class="bg-blue-50 text-blue-800 text-xs p-3 rounded mb-2 border border-blue-100">
                     <i class="fas fa-info-circle mr-1"></i> โหมดนี้เหมาะสำหรับจดค่าแรงหลายๆ คนรวดเดียว โดยข้ามการระบุเวลาเข้า-ออก
@@ -208,7 +192,6 @@
                 </div>
 
                 <div class="border rounded-lg bg-gray-50 p-2">
-                    <!-- หัวข้อคอลัมน์ -->
                     <div class="flex text-[11px] font-bold text-gray-600 pb-2 border-b mb-2 px-1">
                         <div class="w-2/5">ชื่อพนักงาน</div>
                         <div class="w-1/5 text-center">ค่าแรง</div>
@@ -217,10 +200,8 @@
                         <div class="w-6"></div>
                     </div>
 
-                    <!-- พื้นที่ใส่แถวข้อมูล -->
                     <div id="bulkRowsContainer" class="space-y-2">
-                        <!-- แถวข้อมูลจะถูกสร้างด้วย Javascript -->
-                    </div>
+                        </div>
 
                     <button onclick="addBulkRow()" class="mt-3 w-full border border-dashed border-blue-400 text-blue-600 py-2 rounded hover:bg-blue-100 text-sm font-bold">
                         <i class="fas fa-plus"></i> เพิ่มแถวพนักงาน
@@ -232,9 +213,6 @@
                 </button>
             </div>
 
-            <!-- ==============================
-                 โหมด 3: บันทึกสรุปรายเดือน
-                 ============================== -->
             <div id="monthlyModeContainer" class="hidden">
                 <form id="monthlyForm" class="space-y-4">
                     <div class="bg-purple-50 text-purple-800 text-xs p-3 rounded mb-2 border border-purple-100">
@@ -267,7 +245,6 @@
                         <input type="number" id="monthAdvancePay" value="0" min="0" class="w-full border rounded p-2 focus:outline-none focus:border-red-500 bg-red-50" onchange="updateMonthlyCalculations()" oninput="updateMonthlyCalculations()" placeholder="ยอดเบิกสะสมทั้งเดือน">
                     </div>
 
-                    <!-- Live Preview Box -->
                     <div class="bg-gray-50 p-4 rounded border border-gray-200 mt-4">
                         <h3 class="text-sm font-bold text-gray-600 mb-2">สรุปยอดสุทธิรายเดือน</h3>
                         <div class="grid grid-cols-2 gap-2 text-sm">
@@ -291,10 +268,8 @@
 
         </div>
 
-        <!-- Right Column: Table -->
         <div class="bg-white p-6 rounded-lg shadow-md lg:w-2/3">
             
-            <!-- Dashboard Section -->
             <h2 class="text-lg font-bold mb-4 border-b pb-2 text-indigo-700"><i class="fas fa-chart-pie mr-2"></i>แดชบอร์ดสรุปข้อมูล (Dashboard)</h2>
             <div class="grid grid-cols-3 gap-4 mb-6">
                 <div class="bg-blue-50 p-3 rounded border border-blue-100 text-center shadow-sm">
@@ -354,18 +329,13 @@
         </div>
     </div>
 
-    <!-- ==============================================
-         Modal ตรวจสอบก่อนบันทึก (Preview Before Save)
-         ============================================== -->
     <div id="previewConfirmModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-[55] p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <!-- Header -->
             <div class="bg-indigo-600 p-4 text-white flex justify-between items-center shrink-0">
                 <h2 class="text-lg font-bold"><i class="fas fa-clipboard-check mr-2"></i>กรุณาตรวจสอบข้อมูลก่อนบันทึก</h2>
                 <button onclick="closePreviewModal()" class="hover:text-red-200 text-2xl transition"><i class="fas fa-times"></i></button>
             </div>
             
-            <!-- Body (Scrollable Table) -->
             <div class="p-4 overflow-y-auto custom-scrollbar bg-gray-50 grow">
                 <p class="text-sm text-gray-600 mb-3" id="previewModalCount">รายการที่เตรียมบันทึก: 0 รายการ</p>
                 <div class="bg-white border rounded shadow-sm overflow-hidden">
@@ -380,13 +350,11 @@
                             </tr>
                         </thead>
                         <tbody id="previewModalBody">
-                            <!-- แถวพรีวิวจะแทรกที่นี่ -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Footer (Actions) -->
             <div class="p-4 bg-white border-t flex justify-end gap-3 shrink-0 items-center">
                 <div class="text-sm text-gray-500 mr-auto" id="previewTotalAmount">
                     ยอดจ่ายรวม: <span class="font-bold text-lg text-blue-600">0 บาท</span>
@@ -399,14 +367,12 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-[60] flex-col backdrop-blur-sm">
         <i class="fas fa-spinner fa-spin text-white text-6xl mb-4"></i>
         <div class="text-white font-bold text-xl" id="loadingText">กำลังส่งข้อมูล...</div>
         <div class="text-gray-300 text-sm mt-2">กรุณารอสักครู่ (ไม่ควรปิดหน้าจอ)</div>
     </div>
 
-    <!-- Print Modal -->
     <div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-screen overflow-y-auto flex flex-col">
             <div class="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
@@ -444,15 +410,14 @@
         </div>
     </div>
 
-    <!-- Hidden Print Container -->
     <div id="print-container"></div>
     <style id="dynamic-print-style"></style>
 
     <script>
         // ==========================================
-        // URL ของ Google Apps Script
+        // URL ของ Google Apps Script (อัปเดตล่าสุด)
         // ==========================================
-        const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5H9owLgyZRtbL-m_YkV1xabVEcNFyZeMLb8D2r2axWQZe-QSNoN-IsUqpfsUuG0UnPg/exec';
+        const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGNZgVVWylu7ffCj2jBVO1Cv2oYDzBobCwkpdSyWBBEoYEoZZf_mQ07D_AICjodn1vcQ/exec';
         
         let records = [];
         let pendingSaveData = []; // ตัวแปรเก็บข้อมูลที่รอให้กดยืนยันเซฟ
@@ -608,7 +573,6 @@
             updateCalculations();
         }
 
-        // จับ Event Submit โหมดเดี่ยว เพื่อส่งข้อมูลเข้า Modal ตรวจสอบ
         document.getElementById('wageForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const name = document.getElementById('empName').value.trim();
@@ -625,7 +589,6 @@
                 ...calcData
             };
 
-            // โยนข้อมูลให้หน้า Modal ก่อน
             showPreviewModal([newRecord]);
         });
 
@@ -656,12 +619,10 @@
             `;
             container.appendChild(rowDiv);
             
-            // Auto focus ชื่อคนใหม่
             const inputs = rowDiv.querySelectorAll('.bulk-name');
             if(inputs.length > 0) inputs[0].focus();
         }
 
-        // จับ Event ปุ่มตรวจสอบของโหมดกลุ่ม
         function previewBulkSave() {
             const date = document.getElementById('bulkDate').value;
             const rows = document.querySelectorAll('.bulk-row');
@@ -673,7 +634,7 @@
                 const ot = parseFloat(row.querySelector('.bulk-ot').value) || 0;
                 const advance = parseFloat(row.querySelector('.bulk-advance').value) || 0;
 
-                if (name) { // สร้าง Object เฉพาะบรรทัดที่กรอกชื่อแล้ว
+                if (name) { 
                     newRecords.push({
                         id: Date.now().toString() + index + Math.floor(Math.random()*1000),
                         name: name,
@@ -698,7 +659,6 @@
                 return;
             }
 
-            // โยนข้อมูลให้หน้า Modal ก่อน
             showPreviewModal(newRecords);
         }
 
@@ -774,7 +734,7 @@
         // Modal ตรวจสอบข้อมูลก่อนบันทึกจริง
         // ==========================================
         function showPreviewModal(dataArray) {
-            pendingSaveData = dataArray; // เก็บลงตัวแปรรอเซฟ
+            pendingSaveData = dataArray; 
             
             const tbody = document.getElementById('previewModalBody');
             tbody.innerHTML = '';
@@ -807,24 +767,21 @@
                 totalHtml.innerHTML = `ยอดต้องจ่ายทั้งหมด: <span class="font-bold text-xl text-green-600">${totalAmountAll.toLocaleString()} บาท</span>`;
             }
 
-            // แสดง Modal
             const modal = document.getElementById('previewConfirmModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
 
         function closePreviewModal() {
-            pendingSaveData = []; // เคลียร์ขยะ
+            pendingSaveData = []; 
             const modal = document.getElementById('previewConfirmModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
 
-        // รันคำสั่งเซฟลง Google Sheets (ทำทีละรายการให้เสร็จ)
         async function executeSave() {
             if (pendingSaveData.length === 0) return;
 
-            // ซ่อน Modal พรีวิว, เปิด Overlay Loading ป้องกันผู้ใช้กดซ้ำ
             closePreviewModal();
             const loading = document.getElementById('loadingOverlay');
             loading.classList.remove('hidden');
@@ -835,10 +792,9 @@
 
             // เอาข้อมูลใส่ตารางหน้าจอ Local ก่อนทันที เพื่อความรวดเร็วของ UX
             pendingSaveData.forEach(rec => records.unshift(rec));
-            saveToLocalStorage(); // บันทึกลงเครื่อง
+            saveToLocalStorage(); // บันทึกลงเครื่อง (Local Storage ป้องกันข้อมูลหาย)
             renderTable();
 
-            // ทยอยส่งทีละแถวให้ Google Sheets (วิธีนี้ปลอดภัย ไม่ต้องแก้ฝั่ง Apps Script)
             if (APPSCRIPT_URL && APPSCRIPT_URL.trim() !== '') {
                 for (let i = 0; i < totalCount; i++) {
                     let rec = pendingSaveData[i];
@@ -857,15 +813,12 @@
                     }
                 }
             } else {
-                // กรณีไม่ได้ใส่ URL ให้รอแป๊ปนึงเพื่อแสดง Loading ให้ดูเนียนๆ
                 await new Promise(r => setTimeout(r, 800)); 
             }
 
-            // ปิด Loading
             loading.classList.add('hidden');
             loading.classList.remove('flex');
 
-            // เคลียร์ฟอร์ม
             if(!document.getElementById('singleModeContainer').classList.contains('hidden')) {
                 document.getElementById('empName').value = '';
                 document.getElementById('empName').focus();
@@ -881,12 +834,12 @@
                 addBulkRow();
             }
 
-            pendingSaveData = []; // ล้างคิวการเซฟ
+            pendingSaveData = []; 
         }
 
 
         // ==========================================
-        // ฟังก์ชันอรรถประโยชน์ (ตาราง, กราฟ, พริ้น)
+        // ฟังก์ชันอรรถประโยชน์ (ตาราง, กราฟ, พริ้น, Excel)
         // ==========================================
         function formatThaiDate(dateString) {
             const date = new Date(dateString);
@@ -937,25 +890,23 @@
         function deleteRecord(id) {
             if(confirm('ต้องการลบข้อมูลนี้ใช่หรือไม่? (การลบที่นี่จะไม่ลบใน Google Sheets)')) {
                 records = records.filter(r => r.id !== id);
-                saveToLocalStorage(); // อัปเดตข้อมูลในเครื่อง
+                saveToLocalStorage(); 
                 renderTable();
             }
         }
 
-        // ฟังก์ชัน Export Excel (CSV)
+        // ฟังก์ชันโหลดเป็น Excel
         function exportToExcel() {
             if (records.length === 0) {
                 alert('ไม่มีข้อมูลให้ดาวน์โหลด');
                 return;
             }
             
-            // สร้าง Header ของ CSV
-            let csvContent = "\uFEFF"; // ใส่ BOM เพื่อให้ Excel อ่านภาษาไทยได้
+            let csvContent = "\uFEFF"; 
             csvContent += "วันที่,ชื่อพนักงาน,เวลาทำงาน,ชม.รวม,ชม.ปกติ,ชม.OT,ค่าแรงปกติ,ค่า OT,ยอดเบิก,ยอดสุทธิ\n";
 
-            // สร้างข้อมูลแต่ละแถว
             records.forEach(r => {
-                let displayTimeText = r.displayTime.replace(/<br>/g, ' / ').replace(/<[^>]+>/g, ''); // ลบ HTML Tags ออก
+                let displayTimeText = r.displayTime.replace(/<br>/g, ' / ').replace(/<[^>]+>/g, ''); 
                 let row = [
                     formatThaiDate(r.date),
                     `"${r.name}"`,
@@ -971,7 +922,6 @@
                 csvContent += row.join(",") + "\n";
             });
 
-            // สร้างไฟล์และดาวน์โหลด
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
