@@ -726,14 +726,22 @@
             let sumBase = 0, sumOt = 0, sumAdv = 0;
             let workDays = 0, otDays = 0;
             let offDates = [];
-            let wageGroups = {};
-            let otGroups = {};
+            let combinedWageGroups = {};
 
             const daysInMonth = document.querySelectorAll('.ts-base').length;
             for(let i=1; i<=daysInMonth; i++) {
                 const isOff = document.getElementById(`tsDayOff-${i}`).checked;
                 if(isOff) {
                     offDates.push(i);
+                } else {
+                    const bVal = parseFloat(document.getElementById(`tsBase-${i}`).value) || 0;
+                    const oVal = parseFloat(document.getElementById(`tsOt-${i}`).value) || 0;
+                    const dailyTotal = bVal + oVal;
+                    
+                    if(dailyTotal > 0) {
+                        if (!combinedWageGroups[dailyTotal]) combinedWageGroups[dailyTotal] = 0;
+                        combinedWageGroups[dailyTotal]++;
+                    }
                 }
             }
 
@@ -742,8 +750,6 @@
                 sumBase += val;
                 if(val > 0 && !el.disabled) {
                     workDays++;
-                    if (!wageGroups[val]) wageGroups[val] = 0;
-                    wageGroups[val]++;
                 }
             });
             document.querySelectorAll('.ts-ot').forEach(el => {
@@ -751,8 +757,6 @@
                 sumOt += val;
                 if(val > 0 && !el.disabled) {
                     otDays++;
-                    if (!otGroups[val]) otGroups[val] = 0;
-                    otGroups[val]++;
                 }
             });
             document.querySelectorAll('.ts-adv').forEach(el => {
@@ -774,7 +778,7 @@
             if(net < 0) totalEl.className = 'text-xl sm:text-2xl font-bold text-red-400';
             else totalEl.className = 'text-xl sm:text-2xl font-bold text-green-400';
             
-            return { sumBase, sumOt, sumAdv, net, workDays, otDays, offDates, wageGroups, otGroups };
+            return { sumBase, sumOt, sumAdv, net, workDays, otDays, offDates, combinedWageGroups };
         }
 
         document.getElementById('timesheetForm').addEventListener('submit', function(e) {
@@ -815,8 +819,7 @@
                 workDays: totals.workDays,
                 otDays: totals.otDays,
                 offDates: totals.offDates,
-                wageGroups: totals.wageGroups,
-                otGroups: totals.otGroups,
+                combinedWageGroups: totals.combinedWageGroups,
                 monthName: displayMonth
             };
 
@@ -1007,10 +1010,10 @@
                 let offDaysText = r.offDates && r.offDates.length > 0 ? `${r.offDates.join(', ')}` : '-';
                 
                 let wageGroupRows = '';
-                if (r.wageGroups && Object.keys(r.wageGroups).length > 0) {
-                    let wageRates = Object.keys(r.wageGroups).sort((a,b) => b - a);
+                if (r.combinedWageGroups && Object.keys(r.combinedWageGroups).length > 0) {
+                    let wageRates = Object.keys(r.combinedWageGroups).sort((a,b) => b - a); // เรียงจากเรทมากไปน้อย
                     wageRates.forEach(rate => {
-                        let days = r.wageGroups[rate];
+                        let days = r.combinedWageGroups[rate];
                         let totalForRate = days * parseFloat(rate);
                         wageGroupRows += `
                             <tr class="border-b border-dashed border-gray-200">
@@ -1020,34 +1023,12 @@
                         `;
                     });
                 } else {
-                    let avgBaseWage = r.workDays > 0 ? (r.baseWage / r.workDays).toFixed(0) : 0;
+                    let totalCombined = (r.baseWage || 0) + (r.otPay || 0);
+                    let avgBaseWage = r.workDays > 0 ? (totalCombined / r.workDays).toFixed(0) : 0;
                     wageGroupRows = `
                         <tr class="border-b border-dashed border-gray-200">
                             <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${r.workDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(avgBaseWage).toLocaleString()})</span></td>
-                            <td class="text-right font-bold">${(r.baseWage||0).toLocaleString()}.-</td>
-                        </tr>
-                    `;
-                }
-
-                let otGroupRows = '';
-                if (r.otGroups && Object.keys(r.otGroups).length > 0) {
-                    let otRates = Object.keys(r.otGroups).sort((a,b) => b - a);
-                    otRates.forEach(rate => {
-                        let days = r.otGroups[rate];
-                        let totalForRate = days * parseFloat(rate);
-                        otGroupRows += `
-                            <tr class="border-b border-dashed border-gray-200">
-                                <td class="py-1.5 text-gray-700">ทำ OT <span class="font-bold">${days}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(rate).toLocaleString()})</span></td>
-                                <td class="text-right font-bold">${totalForRate.toLocaleString()}.-</td>
-                            </tr>
-                        `;
-                    });
-                } else if (r.otPay > 0) {
-                    let avgOtWage = r.otDays > 0 ? (r.otPay / r.otDays).toFixed(0) : 0;
-                    otGroupRows = `
-                        <tr class="border-b border-dashed border-gray-200">
-                            <td class="py-1.5 text-gray-700">ทำ OT <span class="font-bold">${r.otDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(avgOtWage).toLocaleString()})</span></td>
-                            <td class="text-right font-bold">${(r.otPay||0).toLocaleString()}.-</td>
+                            <td class="text-right font-bold">${totalCombined.toLocaleString()}.-</td>
                         </tr>
                     `;
                 }
@@ -1056,7 +1037,6 @@
                     <div class="font-bold text-gray-800 mt-3 mb-1 border-b-2 border-gray-800 pb-1 text-sm">รายละเอียดการทำงาน</div>
                     <table class="w-full text-left mb-3" style="font-size: inherit;">
                         ${wageGroupRows}
-                        ${otGroupRows}
                     </table>
 
                     <div class="bg-gray-50 p-2 rounded mb-3 border border-gray-200 text-sm">
@@ -1098,10 +1078,10 @@
                     </div>
                 `;
             } else {
+                let dailyCombined = (r.baseWage || 0) + (r.otPay || 0);
                 detailTable = `
                     <table class="w-full text-left mb-3" style="font-size: inherit;">
-                        <tr class="border-b border-dashed border-gray-200"><td class="py-1 text-gray-600">ค่าแรงปกติ</td><td class="text-right font-medium">${r.baseWage.toLocaleString()}.-</td></tr>
-                        ${r.otPay > 0 ? `<tr class="border-b border-dashed border-gray-200"><td class="py-1 text-gray-600">ค่า OT ${r.otHours > 0 ? `(${r.otHours.toFixed(1)}ชม.)` : ''}</td><td class="text-right font-medium">${r.otPay.toLocaleString()}.-</td></tr>` : ''}
+                        <tr class="border-b border-dashed border-gray-200"><td class="py-1 text-gray-600">ค่าแรงรวม</td><td class="text-right font-medium">${dailyCombined.toLocaleString()}.-</td></tr>
                         ${r.advancePay > 0 ? `<tr><td class="py-1 text-red-600 font-bold mt-2">หักเบิกเงินล่วงหน้า</td><td class="text-right text-red-600 font-bold mt-2">-${r.advancePay.toLocaleString()}.-</td></tr>` : ''}
                     </table>
                 `;
