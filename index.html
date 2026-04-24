@@ -275,12 +275,6 @@
                             </div>
                         </div>
 
-                        <!-- ช่องเบิกเงินสะสมแบบรวบยอดทั้งเดือน -->
-                        <div class="bg-red-50 p-3 rounded-lg border border-red-100 flex justify-between items-center shrink-0 mt-2">
-                            <label class="text-sm font-bold text-red-700"><i class="fas fa-hand-holding-usd mr-1"></i> เบิกเงินสะสม (ยอดรวมทั้งเดือน)</label>
-                            <input type="number" id="tsLumpAdvance" value="0" min="0" class="w-1/3 sm:w-1/4 border border-red-200 rounded-lg p-2 outline-none font-bold text-red-600 text-right bg-white focus:ring-2 focus:ring-red-400 shadow-sm" oninput="calcTimesheetTotals()" placeholder="ใส่ยอดเบิกรวม">
-                        </div>
-
                         <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 text-lg shrink-0 mt-4">
                             <i class="fas fa-file-invoice-dollar"></i> ตรวจสอบและบันทึก
                         </button>
@@ -734,13 +728,14 @@
                 if(isOff) {
                     offDates.push(i);
                 } else {
+                    // หาผลรวมของ (ค่าแรง + โอที) ของแต่ละวัน
                     const bVal = parseFloat(document.getElementById(`tsBase-${i}`).value) || 0;
                     const oVal = parseFloat(document.getElementById(`tsOt-${i}`).value) || 0;
                     const dailyTotal = bVal + oVal;
                     
                     if(dailyTotal > 0) {
                         if (!combinedWageGroups[dailyTotal]) combinedWageGroups[dailyTotal] = 0;
-                        combinedWageGroups[dailyTotal]++;
+                        combinedWageGroups[dailyTotal]++; // นับจำนวนวันที่มีรายได้รวมเท่ากัน
                     }
                 }
             }
@@ -762,10 +757,6 @@
             document.querySelectorAll('.ts-adv').forEach(el => {
                 sumAdv += parseFloat(el.value) || 0;
             });
-            
-            // นำยอดเบิกเหมาจ่ายทั้งเดือนมาบวกเพิ่ม
-            const lumpAdv = parseFloat(document.getElementById('tsLumpAdvance').value) || 0;
-            sumAdv += lumpAdv;
 
             const net = sumBase + sumOt - sumAdv;
 
@@ -896,7 +887,6 @@
                 document.getElementById('empName').focus();
             } else {
                 document.getElementById('tsEmpName').value = '';
-                document.getElementById('tsLumpAdvance').value = '0';
                 generateTimesheet(); // reset table
                 document.getElementById('tsEmpName').focus();
             }
@@ -1010,6 +1000,7 @@
                 let offDaysText = r.offDates && r.offDates.length > 0 ? `${r.offDates.join(', ')}` : '-';
                 
                 let wageGroupRows = '';
+                // ดึงข้อมูลกลุ่มเรทเงิน (ค่าแรง+OT) มาแสดง โดยไม่ใช้การหารเฉลี่ย
                 if (r.combinedWageGroups && Object.keys(r.combinedWageGroups).length > 0) {
                     let wageRates = Object.keys(r.combinedWageGroups).sort((a,b) => b - a); // เรียงจากเรทมากไปน้อย
                     wageRates.forEach(rate => {
@@ -1017,17 +1008,17 @@
                         let totalForRate = days * parseFloat(rate);
                         wageGroupRows += `
                             <tr class="border-b border-dashed border-gray-200">
-                                <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${days}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(rate).toLocaleString()})</span></td>
+                                <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${days}</span> วัน <span class="text-[11px] text-gray-500 ml-1">(วันละ ${parseFloat(rate).toLocaleString()} ฿)</span></td>
                                 <td class="text-right font-bold">${totalForRate.toLocaleString()}.-</td>
                             </tr>
                         `;
                     });
                 } else {
+                    // หากเป็นข้อมูลเก่าที่ไม่มี combinedWageGroups ให้แสดงบรรทัดเดียวไปเลย (ไม่หารเฉลี่ย)
                     let totalCombined = (r.baseWage || 0) + (r.otPay || 0);
-                    let avgBaseWage = r.workDays > 0 ? (totalCombined / r.workDays).toFixed(0) : 0;
                     wageGroupRows = `
                         <tr class="border-b border-dashed border-gray-200">
-                            <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${r.workDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(avgBaseWage).toLocaleString()})</span></td>
+                            <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${r.workDays || 0}</span> วัน</td>
                             <td class="text-right font-bold">${totalCombined.toLocaleString()}.-</td>
                         </tr>
                     `;
