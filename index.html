@@ -726,6 +726,8 @@
             let sumBase = 0, sumOt = 0, sumAdv = 0;
             let workDays = 0, otDays = 0;
             let offDates = [];
+            let wageGroups = {};
+            let otGroups = {};
 
             const daysInMonth = document.querySelectorAll('.ts-base').length;
             for(let i=1; i<=daysInMonth; i++) {
@@ -738,12 +740,20 @@
             document.querySelectorAll('.ts-base').forEach(el => {
                 const val = parseFloat(el.value) || 0;
                 sumBase += val;
-                if(val > 0 && !el.disabled) workDays++;
+                if(val > 0 && !el.disabled) {
+                    workDays++;
+                    if (!wageGroups[val]) wageGroups[val] = 0;
+                    wageGroups[val]++;
+                }
             });
             document.querySelectorAll('.ts-ot').forEach(el => {
                 const val = parseFloat(el.value) || 0;
                 sumOt += val;
-                if(val > 0 && !el.disabled) otDays++;
+                if(val > 0 && !el.disabled) {
+                    otDays++;
+                    if (!otGroups[val]) otGroups[val] = 0;
+                    otGroups[val]++;
+                }
             });
             document.querySelectorAll('.ts-adv').forEach(el => {
                 sumAdv += parseFloat(el.value) || 0;
@@ -764,7 +774,7 @@
             if(net < 0) totalEl.className = 'text-xl sm:text-2xl font-bold text-red-400';
             else totalEl.className = 'text-xl sm:text-2xl font-bold text-green-400';
             
-            return { sumBase, sumOt, sumAdv, net, workDays, otDays, offDates };
+            return { sumBase, sumOt, sumAdv, net, workDays, otDays, offDates, wageGroups, otGroups };
         }
 
         document.getElementById('timesheetForm').addEventListener('submit', function(e) {
@@ -805,6 +815,8 @@
                 workDays: totals.workDays,
                 otDays: totals.otDays,
                 offDates: totals.offDates,
+                wageGroups: totals.wageGroups,
+                otGroups: totals.otGroups,
                 monthName: displayMonth
             };
 
@@ -988,28 +1000,63 @@
             const r = currentPrintRecord;
             
             const isMonthly = r.type === 'monthly';
-            const title = isMonthly ? 'ใบสรุปค่าจ้างประจำเดือน' : 'สลิปค่าจ้างรายวัน';
-            const dateLabel = isMonthly ? 'ประจำเดือน' : 'ประจำวันที่';
-            const dateValue = isMonthly ? r.monthName : formatThaiDate(r.date);
+            const title = isMonthly ? 'ใบสรุปค่าจ้าง' : 'สลิปค่าจ้างรายวัน';
 
             let detailTable = '';
             if (isMonthly) {
                 let offDaysText = r.offDates && r.offDates.length > 0 ? `${r.offDates.join(', ')}` : '-';
-                let avgBaseWage = r.workDays > 0 ? (r.baseWage / r.workDays).toFixed(0) : 0;
-                let avgOtWage = r.otDays > 0 ? (r.otPay / r.otDays).toFixed(0) : 0;
+                
+                let wageGroupRows = '';
+                if (r.wageGroups && Object.keys(r.wageGroups).length > 0) {
+                    let wageRates = Object.keys(r.wageGroups).sort((a,b) => b - a);
+                    wageRates.forEach(rate => {
+                        let days = r.wageGroups[rate];
+                        let totalForRate = days * parseFloat(rate);
+                        wageGroupRows += `
+                            <tr class="border-b border-dashed border-gray-200">
+                                <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${days}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(rate).toLocaleString()})</span></td>
+                                <td class="text-right font-bold">${totalForRate.toLocaleString()}.-</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    let avgBaseWage = r.workDays > 0 ? (r.baseWage / r.workDays).toFixed(0) : 0;
+                    wageGroupRows = `
+                        <tr class="border-b border-dashed border-gray-200">
+                            <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${r.workDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(avgBaseWage).toLocaleString()})</span></td>
+                            <td class="text-right font-bold">${(r.baseWage||0).toLocaleString()}.-</td>
+                        </tr>
+                    `;
+                }
+
+                let otGroupRows = '';
+                if (r.otGroups && Object.keys(r.otGroups).length > 0) {
+                    let otRates = Object.keys(r.otGroups).sort((a,b) => b - a);
+                    otRates.forEach(rate => {
+                        let days = r.otGroups[rate];
+                        let totalForRate = days * parseFloat(rate);
+                        otGroupRows += `
+                            <tr class="border-b border-dashed border-gray-200">
+                                <td class="py-1.5 text-gray-700">ทำ OT <span class="font-bold">${days}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(rate).toLocaleString()})</span></td>
+                                <td class="text-right font-bold">${totalForRate.toLocaleString()}.-</td>
+                            </tr>
+                        `;
+                    });
+                } else if (r.otPay > 0) {
+                    let avgOtWage = r.otDays > 0 ? (r.otPay / r.otDays).toFixed(0) : 0;
+                    otGroupRows = `
+                        <tr class="border-b border-dashed border-gray-200">
+                            <td class="py-1.5 text-gray-700">ทำ OT <span class="font-bold">${r.otDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${parseFloat(avgOtWage).toLocaleString()})</span></td>
+                            <td class="text-right font-bold">${(r.otPay||0).toLocaleString()}.-</td>
+                        </tr>
+                    `;
+                }
 
                 detailTable = `
                     <div class="font-bold text-gray-800 mt-3 mb-1 border-b-2 border-gray-800 pb-1 text-sm">รายละเอียดการทำงาน</div>
                     <table class="w-full text-left mb-3" style="font-size: inherit;">
-                        <tr class="border-b border-dashed border-gray-200">
-                            <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${r.workDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${avgBaseWage})</span></td>
-                            <td class="text-right font-bold">${(r.baseWage||0).toLocaleString()}.-</td>
-                        </tr>
-                        ${r.otPay > 0 ? `
-                        <tr class="border-b border-dashed border-gray-200">
-                            <td class="py-1.5 text-gray-700">ทำ OT <span class="font-bold">${r.otDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${avgOtWage})</span></td>
-                            <td class="text-right font-bold">${(r.otPay||0).toLocaleString()}.-</td>
-                        </tr>` : ''}
+                        ${wageGroupRows}
+                        ${otGroupRows}
                     </table>
 
                     <div class="bg-gray-50 p-2 rounded mb-3 border border-gray-200 text-sm">
@@ -1028,7 +1075,7 @@
 
                 html = `
                     <div class="text-center font-bold text-lg mb-1">${title}</div>
-                    <div class="text-center text-sm text-gray-500 mb-3">${dateLabel}: ${dateValue}</div>
+                    <div class="text-center text-sm text-gray-500 mb-3">${r.monthName}</div>
                     
                     <div class="dashed-line"></div>
                     <table class="w-full text-left mb-2" style="font-size: inherit;">
@@ -1061,7 +1108,7 @@
 
                 html = `
                     <div class="text-center font-bold text-lg mb-1">${title}</div>
-                    <div class="text-center text-sm text-gray-500 mb-3">${dateLabel}: ${formatThaiDate(r.date)}</div>
+                    <div class="text-center text-sm text-gray-500 mb-3">ประจำวันที่: ${formatThaiDate(r.date)}</div>
                     
                     <div class="dashed-line"></div>
                     <table class="w-full text-left mb-2" style="font-size: inherit;">
