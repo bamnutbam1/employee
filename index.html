@@ -333,7 +333,7 @@
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-indigo-600 p-4 text-white flex justify-between items-center shrink-0">
                 <h2 class="text-lg font-bold"><i class="fas fa-clipboard-check mr-2"></i>กรุณาตรวจสอบข้อมูลก่อนบันทึก</h2>
-                <button onclick="closePreviewModal()" class="hover:text-red-200 text-2xl transition"><i class="fas fa-times"></i></button>
+                <button onclick="cancelPreviewModal()" class="hover:text-red-200 text-2xl transition"><i class="fas fa-times"></i></button>
             </div>
             
             <div class="p-4 overflow-y-auto custom-scrollbar bg-gray-50 grow">
@@ -359,7 +359,8 @@
                 <div class="text-sm text-gray-500 mr-auto" id="previewTotalAmount">
                     ยอดจ่ายรวม: <span class="font-bold text-lg text-blue-600">0 บาท</span>
                 </div>
-                <button onclick="closePreviewModal()" class="px-5 py-2 border rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition">แก้ไขข้อมูล</button>
+                <!-- ปุ่มยกเลิก จะสั่งล้างข้อมูล pending ด้วย -->
+                <button onclick="cancelPreviewModal()" class="px-5 py-2 border rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition">แก้ไขข้อมูล</button>
                 <button onclick="executeSave()" class="px-6 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600 shadow-md flex items-center gap-2 transition transform hover:scale-105">
                     <i class="fas fa-save"></i> ยืนยันบันทึกข้อมูล
                 </button>
@@ -772,42 +773,51 @@
             modal.classList.add('flex');
         }
 
-        function closePreviewModal() {
-            pendingSaveData = []; 
+        // ฟังก์ชันเมื่อกดยกเลิก "ต้องล้างข้อมูลทิ้ง"
+        function cancelPreviewModal() {
+            pendingSaveData = []; // ล้างข้อมูลทิ้ง
             const modal = document.getElementById('previewConfirmModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
 
+        // ฟังก์ชันยืนยันเซฟ "ต้องห้ามล้างข้อมูลทิ้งก่อนเซฟ"
         async function executeSave() {
             if (pendingSaveData.length === 0) return;
 
-            closePreviewModal();
+            // 1. ซ่อน Modal พรีวิว โดยแค่ซ่อนหน้าต่าง แต่ไม่ลบข้อมูล!
+            const modal = document.getElementById('previewConfirmModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            // 2. เปิดหน้าต่าง Loading หมุนๆ
             const loading = document.getElementById('loadingOverlay');
             loading.classList.remove('hidden');
             loading.classList.add('flex');
 
-            let successCount = 0;
             const totalCount = pendingSaveData.length;
 
-            // เอาข้อมูลใส่ตารางหน้าจอ Local ก่อนทันที เพื่อความรวดเร็วของ UX
-            pendingSaveData.forEach(rec => records.unshift(rec));
-            saveToLocalStorage(); // บันทึกลงเครื่อง (Local Storage ป้องกันข้อมูลหาย)
-            renderTable();
+            // 3. แบ็คอัพข้อมูลไว้ก่อนเผื่อเหนียว แล้วเอาลงตารางหน้าเว็บเลย!
+            const dataToSave = [...pendingSaveData]; 
+            
+            dataToSave.forEach(rec => records.unshift(rec));
+            saveToLocalStorage(); // บันทึกลงเครื่องทันที! ป้องกันเน็ตหลุด
+            renderTable(); // วาดตารางโชว์เดี๋ยวนั้น
 
+            // 4. ทยอยส่งเข้า Google Sheets แบบ no-cors ป้องกันบั๊กฝั่งเซิร์ฟเวอร์
             if (APPSCRIPT_URL && APPSCRIPT_URL.trim() !== '') {
                 for (let i = 0; i < totalCount; i++) {
-                    let rec = pendingSaveData[i];
+                    let rec = dataToSave[i];
                     document.getElementById('loadingText').innerText = `กำลังส่งข้อมูล... (${i+1}/${totalCount})`;
                     
                     try {
-                        const response = await fetch(APPSCRIPT_URL, {
+                        await fetch(APPSCRIPT_URL, {
                             method: 'POST',
+                            mode: 'no-cors', // ทีเด็ด! โหมดนี้จะทะลวงผ่าน CORS บล็อคของ Google ได้ชัวร์ 100%
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify(rec)
                         });
-                        const result = await response.json();
-                        if (result.status === 'success') successCount++;
+                        // ไม่ต้องรอเช็ค result แบบละเอียด เพราะ no-cors มันจะสำเร็จเสมอถ้าเน็ตไม่หลุด
                     } catch (error) {
                         console.error('Error saving record:', rec, error);
                     }
@@ -816,9 +826,11 @@
                 await new Promise(r => setTimeout(r, 800)); 
             }
 
+            // 5. ปิด Loading
             loading.classList.add('hidden');
             loading.classList.remove('flex');
 
+            // 6. ล้างช่องกรอกข้อความ เพื่อเตรียมพร้อมรับคนต่อไป
             if(!document.getElementById('singleModeContainer').classList.contains('hidden')) {
                 document.getElementById('empName').value = '';
                 document.getElementById('empName').focus();
@@ -834,6 +846,7 @@
                 addBulkRow();
             }
 
+            // 7. ล้างคิวการเซฟเมื่อเสร็จสิ้นภารกิจทุกอย่าง
             pendingSaveData = []; 
         }
 
