@@ -988,21 +988,67 @@
             const r = currentPrintRecord;
             
             const isMonthly = r.type === 'monthly';
-            const title = isMonthly ? 'ใบแจ้งยอดค่าจ้างรายเดือน' : 'สลิปค่าจ้างรายวัน';
-            const dateLabel = isMonthly ? 'สรุปยอดเมื่อ' : 'ประจำวันที่';
+            const title = isMonthly ? 'ใบสรุปค่าจ้างประจำเดือน' : 'สลิปค่าจ้างรายวัน';
+            const dateLabel = isMonthly ? 'ประจำเดือน' : 'ประจำวันที่';
+            const dateValue = isMonthly ? r.monthName : formatThaiDate(r.date);
 
             let detailTable = '';
             if (isMonthly) {
-                let offDaysText = r.offDates && r.offDates.length > 0 ? `วันที่ ${r.offDates.join(', ')}` : '-';
+                let offDaysText = r.offDates && r.offDates.length > 0 ? `${r.offDates.join(', ')}` : '-';
+                let avgBaseWage = r.workDays > 0 ? (r.baseWage / r.workDays).toFixed(0) : 0;
+                let avgOtWage = r.otDays > 0 ? (r.otPay / r.otDays).toFixed(0) : 0;
+
                 detailTable = `
-                    <div class="bg-gray-50 p-2 rounded mb-2 border border-gray-100">
-                        <div class="text-xs text-gray-500 mb-1 font-bold">สรุปวันหยุด (${r.offDates ? r.offDates.length : 0} วัน): <span class="text-red-500 font-normal">${offDaysText}</span></div>
-                    </div>
+                    <div class="font-bold text-gray-800 mt-3 mb-1 border-b-2 border-gray-800 pb-1 text-sm">รายละเอียดการทำงาน</div>
                     <table class="w-full text-left mb-3" style="font-size: inherit;">
-                        <tr class="border-b border-dashed border-gray-200"><td class="py-1 text-gray-600">ค่าแรงทำงาน (${r.workDays || 0} วัน)</td><td class="text-right font-medium">${(r.baseWage||0).toLocaleString()}.-</td></tr>
-                        <tr class="border-b border-dashed border-gray-200"><td class="py-1 text-gray-600">ค่าล่วงเวลา/OT (${r.otDays || 0} วัน)</td><td class="text-right font-medium">${(r.otPay||0).toLocaleString()}.-</td></tr>
-                        ${r.advancePay > 0 ? `<tr><td class="py-1 text-red-600 font-bold mt-2">หักเบิกล่วงหน้าสะสม</td><td class="text-right text-red-600 font-bold mt-2">-${r.advancePay.toLocaleString()}.-</td></tr>` : ''}
+                        <tr class="border-b border-dashed border-gray-200">
+                            <td class="py-1.5 text-gray-700">ทำงาน <span class="font-bold">${r.workDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${avgBaseWage})</span></td>
+                            <td class="text-right font-bold">${(r.baseWage||0).toLocaleString()}.-</td>
+                        </tr>
+                        ${r.otPay > 0 ? `
+                        <tr class="border-b border-dashed border-gray-200">
+                            <td class="py-1.5 text-gray-700">ทำ OT <span class="font-bold">${r.otDays || 0}</span> วัน <span class="text-[10px] text-gray-500 ml-1">(วันละ ${avgOtWage})</span></td>
+                            <td class="text-right font-bold">${(r.otPay||0).toLocaleString()}.-</td>
+                        </tr>` : ''}
                     </table>
+
+                    <div class="bg-gray-50 p-2 rounded mb-3 border border-gray-200 text-sm">
+                        <span class="font-bold text-red-600">หยุด ${r.offDates ? r.offDates.length : 0} วัน</span>
+                        <div class="text-xs text-gray-500 mt-0.5">วันที่: ${offDaysText}</div>
+                    </div>
+
+                    <div class="font-bold text-gray-800 mt-2 mb-1 border-b-2 border-gray-800 pb-1 text-sm">รายการหัก</div>
+                    <table class="w-full text-left mb-3" style="font-size: inherit;">
+                        <tr>
+                            <td class="py-1.5 text-red-600 font-medium">เบิกเงินล่วงหน้า</td>
+                            <td class="text-right text-red-600 font-bold">-${(r.advancePay||0).toLocaleString()}.-</td>
+                        </tr>
+                    </table>
+                `;
+
+                html = `
+                    <div class="text-center font-bold text-lg mb-1">${title}</div>
+                    <div class="text-center text-sm text-gray-500 mb-3">${dateLabel}: ${dateValue}</div>
+                    
+                    <div class="dashed-line"></div>
+                    <table class="w-full text-left mb-2" style="font-size: inherit;">
+                        <tr><td width="20%" class="text-gray-600">ชื่อ:</td><td class="font-bold text-base">${r.name}</td></tr>
+                    </table>
+                    
+                    ${detailTable}
+                    
+                    <div class="solid-line" style="border-width: 2px;"></div>
+                    <table class="w-full font-bold mb-6 mt-2" style="font-size: inherit;">
+                        <tr>
+                            <td class="${r.totalPay < 0 ? 'text-red-600' : 'text-gray-800'} text-base">${r.totalPay < 0 ? 'ยอดยกไป (ติดลบ)' : 'ยอดรับสุทธิ'}</td>
+                            <td class="text-right text-xl ${r.totalPay < 0 ? 'text-red-600' : 'text-gray-800'}">${r.totalPay.toLocaleString()} ฿</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="text-center mt-10 mb-4">
+                        <p class="text-gray-400">................................................</p>
+                        <p class="mt-1 text-sm text-gray-500">(ผู้รับเงิน)</p>
+                    </div>
                 `;
             } else {
                 detailTable = `
@@ -1012,34 +1058,34 @@
                         ${r.advancePay > 0 ? `<tr><td class="py-1 text-red-600 font-bold mt-2">หักเบิกเงินล่วงหน้า</td><td class="text-right text-red-600 font-bold mt-2">-${r.advancePay.toLocaleString()}.-</td></tr>` : ''}
                     </table>
                 `;
-            }
 
-            const html = `
-                <div class="text-center font-bold text-lg mb-1">${title}</div>
-                <div class="text-center text-sm text-gray-500 mb-3">${dateLabel}: ${formatThaiDate(r.date)}</div>
-                
-                <div class="dashed-line"></div>
-                <table class="w-full text-left mb-2" style="font-size: inherit;">
-                    <tr><td width="35%" class="text-gray-600">พนักงาน:</td><td class="font-bold text-right text-base">${r.name}</td></tr>
-                    <tr><td class="align-top text-gray-600">${isMonthly?'รอบบิล:':'เวลาทำงาน:'}</td><td class="text-right">${isMonthly ? r.monthName : r.displayTime}</td></tr>
-                </table>
-                <div class="dashed-line"></div>
-                
-                ${detailTable}
-                
-                <div class="solid-line" style="border-width: 2px;"></div>
-                <table class="w-full font-bold mb-6 mt-2" style="font-size: inherit;">
-                    <tr>
-                        <td class="${r.totalPay < 0 ? 'text-red-600' : 'text-gray-800'} text-base">${r.totalPay < 0 ? 'ยอดยกไป (ติดลบ)' : 'ยอดรับสุทธิ'}</td>
-                        <td class="text-right text-xl ${r.totalPay < 0 ? 'text-red-600' : 'text-gray-800'}">${r.totalPay.toLocaleString()} ฿</td>
-                    </tr>
-                </table>
-                
-                <div class="text-center mt-10 mb-4">
-                    <p class="text-gray-400">................................................</p>
-                    <p class="mt-1 text-sm text-gray-500">(ผู้รับเงิน)</p>
-                </div>
-            `;
+                html = `
+                    <div class="text-center font-bold text-lg mb-1">${title}</div>
+                    <div class="text-center text-sm text-gray-500 mb-3">${dateLabel}: ${formatThaiDate(r.date)}</div>
+                    
+                    <div class="dashed-line"></div>
+                    <table class="w-full text-left mb-2" style="font-size: inherit;">
+                        <tr><td width="35%" class="text-gray-600">พนักงาน:</td><td class="font-bold text-right text-base">${r.name}</td></tr>
+                        <tr><td class="align-top text-gray-600">เวลาทำงาน:</td><td class="text-right">${r.displayTime}</td></tr>
+                    </table>
+                    <div class="dashed-line"></div>
+                    
+                    ${detailTable}
+                    
+                    <div class="solid-line" style="border-width: 2px;"></div>
+                    <table class="w-full font-bold mb-6 mt-2" style="font-size: inherit;">
+                        <tr>
+                            <td class="${r.totalPay < 0 ? 'text-red-600' : 'text-gray-800'} text-base">${r.totalPay < 0 ? 'ยอดยกไป (ติดลบ)' : 'ยอดรับสุทธิ'}</td>
+                            <td class="text-right text-xl ${r.totalPay < 0 ? 'text-red-600' : 'text-gray-800'}">${r.totalPay.toLocaleString()} ฿</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="text-center mt-10 mb-4">
+                        <p class="text-gray-400">................................................</p>
+                        <p class="mt-1 text-sm text-gray-500">(ผู้รับเงิน)</p>
+                    </div>
+                `;
+            }
             container.innerHTML = html;
         }
 
