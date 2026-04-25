@@ -86,9 +86,10 @@
         </div>
     </nav>
 
-    <div class="container mx-auto p-4 lg:flex lg:gap-6 mt-2">
+    <div class="container mx-auto p-3 sm:p-4 lg:flex lg:gap-6 mt-2">
         
-        <div class="bg-white p-0 rounded-2xl shadow-md lg:w-[40%] mb-6 lg:mb-0 h-fit overflow-hidden border border-gray-100 flex flex-col max-h-[85vh]">
+        <!-- ฝั่งซ้าย: ปรับ lg:max-h ให้ล็อกความสูงแค่บนจอคอม ส่วนมือถือปล่อยให้เลื่อนลงได้ตามปกติ -->
+        <div class="bg-white p-0 rounded-2xl shadow-md lg:w-[40%] mb-6 lg:mb-0 h-fit overflow-hidden border border-gray-100 flex flex-col lg:max-h-[88vh]">
             
             <div class="flex bg-gray-50 border-b border-gray-200 shrink-0">
                 <button id="tabBtnSingle" onclick="switchTab('single')" class="flex-1 py-4 px-2 bg-white border-t-2 border-blue-600 font-bold text-blue-700 text-sm transition flex items-center justify-center gap-2 shadow-[0_4px_0_0_white]">
@@ -99,7 +100,7 @@
                 </button>
             </div>
 
-            <div class="p-6 overflow-y-auto custom-scrollbar grow">
+            <div class="p-4 sm:p-6 overflow-y-auto custom-scrollbar grow">
                 <div id="singleModeContainer" class="animate-fade-in">
                     <form id="wageForm" class="space-y-5">
                         <div class="grid grid-cols-2 gap-4">
@@ -201,7 +202,7 @@
                         
                         <div class="bg-indigo-50 text-indigo-800 text-xs p-3 rounded-lg border border-indigo-100 flex gap-2 items-start shrink-0">
                             <i class="fas fa-info-circle mt-0.5 text-indigo-500"></i>
-                            <p><b>ตารางทำเงินเดือน:</b> ติ๊กเลือก "หยุด" หรือ "ทำ OT" ในแต่ละวันได้เลย ระบบจะคำนวณและหยอดยอดเงินให้อัตโนมัติ</p>
+                            <p><b>ตารางทำเงินเดือน:</b> ติ๊กเลือก "หยุด" หรือ "ทำ OT" ระบบจะคำนวณและหยอดยอดเงินให้อัตโนมัติ (แก้ไขยอดรายวันได้เลย)</p>
                         </div>
                         
                         <div class="grid grid-cols-2 gap-3 shrink-0">
@@ -227,37 +228,44 @@
                             </div>
                         </div>
 
-                        <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col shrink-0">
-                            <div class="max-h-[350px] overflow-y-auto custom-scrollbar bg-white">
-                                <table class="w-full text-[11px] sm:text-xs text-center">
+                        <!-- ปรับปรุงขนาดตารางให้แสดงผลบนมือถือได้ดีขึ้น (ย่อฟอนต์, ลด padding, ซ่อนขอบที่ไม่จำเป็น) -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col shrink-0 relative">
+                            <div class="max-h-[350px] overflow-y-auto overflow-x-auto custom-scrollbar bg-white">
+                                <table class="w-full text-center whitespace-nowrap min-w-full">
                                     <thead class="bg-gray-100 sticky top-0 z-10 shadow-sm border-b border-gray-200">
-                                        <tr class="text-gray-600">
-                                            <th class="p-1.5 w-12 font-semibold">วันที่</th>
-                                            <th class="p-1.5 w-12 font-semibold text-red-500">หยุด</th>
-                                            <th class="p-1.5 w-14 font-semibold text-orange-500">ทำ OT</th>
-                                            <th class="p-1.5 font-semibold text-indigo-600">ค่าแรง</th>
-                                            <th class="p-1.5 font-semibold text-orange-500">OT</th>
+                                        <tr class="text-gray-600 text-[10px] sm:text-xs">
+                                            <th class="p-1.5 w-10 font-semibold">วันที่</th>
+                                            <th class="p-1.5 w-10 font-semibold text-red-500">หยุด</th>
+                                            <th class="p-1.5 w-10 font-semibold text-orange-500">ทำ OT</th>
+                                            <th class="p-1.5 min-w-[50px] font-semibold text-indigo-600">ค่าแรง</th>
+                                            <th class="p-1.5 min-w-[50px] font-semibold text-orange-500">OT</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tsBody" class="divide-y divide-gray-100">
-                                        <tr><td colspan="5" class="p-6 text-gray-400">กรุณาเลือกเดือนเพื่อสร้างตาราง</td></tr>
+                                        <tr><td colspan="5" class="p-6 text-gray-400 text-sm">กรุณาเลือกเดือนเพื่อสร้างตาราง</td></tr>
                                     </tbody>
                                 </table>
                             </div>
                             
-                            <div class="bg-indigo-900 text-white p-3 flex justify-between items-center text-[11px] sm:text-sm shrink-0">
+                            <div class="bg-indigo-900 text-white p-2 sm:p-3 flex justify-between items-center text-[10px] sm:text-sm shrink-0">
                                 <div class="flex gap-2 sm:gap-4 font-medium">
                                     <div class="text-gray-300" title="ค่าแรงรวม"><i class="fas fa-money-bill-wave hidden sm:inline"></i> <span id="tsSumBase" class="text-white">0</span></div>
                                     <div class="text-orange-300" title="OT รวม"><i class="fas fa-clock hidden sm:inline"></i> <span id="tsSumOt" class="text-orange-400">0</span></div>
                                 </div>
                                 <div class="flex items-center">
-                                    <span class="text-gray-300 mr-2 text-xs">สุทธิ:</span>
-                                    <span id="tsGrandTotal" class="text-lg sm:text-xl font-bold text-green-400">0 ฿</span>
+                                    <span class="text-gray-300 mr-2 text-xs">ยอดรวม:</span>
+                                    <span id="tsGrandTotal" class="text-base sm:text-xl font-bold text-green-400">0 ฿</span>
                                 </div>
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 text-lg shrink-0 mt-4">
+                        <!-- เอาเบิกเงินสะสมยอดรวมทั้งเดือน กลับคืนมาไว้ตรงนี้ -->
+                        <div class="bg-red-50 p-2.5 sm:p-3 rounded-lg border border-red-100 flex justify-between items-center shrink-0">
+                            <label class="text-xs sm:text-sm font-bold text-red-700"><i class="fas fa-hand-holding-usd mr-1"></i> เบิกเงินสะสม <span class="hidden sm:inline">(ยอดรวมทั้งเดือน)</span></label>
+                            <input type="number" id="tsLumpAdvance" value="0" min="0" class="w-24 sm:w-1/3 border border-red-200 rounded-lg p-1.5 sm:p-2 outline-none font-bold text-red-600 text-right bg-white focus:ring-2 focus:ring-red-400 shadow-sm text-sm sm:text-base" oninput="calcTimesheetTotals()" placeholder="ระบุยอดเงิน">
+                        </div>
+
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 text-lg shrink-0 mt-2">
                             <i class="fas fa-file-invoice-dollar"></i> ตรวจสอบและบันทึก
                         </button>
                     </form>
@@ -266,24 +274,25 @@
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl shadow-md lg:w-[60%] flex flex-col h-fit border border-gray-100 max-h-[85vh]">
+        <!-- ฝั่งขวา: ปรับ lg:max-h ให้ล็อกความสูงแค่บนจอคอม ส่วนมือถือปล่อยให้เลื่อนลงได้ตามปกติ -->
+        <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-md lg:w-[60%] flex flex-col h-fit border border-gray-100 lg:max-h-[88vh]">
             
             <div class="flex justify-between items-center mb-4 shrink-0">
                 <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-chart-pie text-blue-600 mr-2"></i>ภาพรวม (Dashboard)</h2>
             </div>
             
-            <div class="grid grid-cols-3 gap-3 mb-6 shrink-0">
-                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col justify-center">
-                    <div class="text-xs text-blue-600 font-medium mb-1">ยอดจ่ายรวมทั้งหมด</div>
-                    <div class="text-xl font-bold text-blue-800" id="dashTotalPay">0 ฿</div>
+            <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-6 shrink-0">
+                <div class="bg-blue-50 p-3 sm:p-4 rounded-xl border border-blue-100 flex flex-col justify-center">
+                    <div class="text-[10px] sm:text-xs text-blue-600 font-medium mb-1">ยอดจ่ายรวมทั้งหมด</div>
+                    <div class="text-base sm:text-xl font-bold text-blue-800" id="dashTotalPay">0 ฿</div>
                 </div>
-                <div class="bg-orange-50 p-4 rounded-xl border border-orange-100 flex flex-col justify-center">
-                    <div class="text-xs text-orange-600 font-medium mb-1">เฉพาะค่า OT</div>
-                    <div class="text-xl font-bold text-orange-800" id="dashTotalOT">0 ฿</div>
+                <div class="bg-orange-50 p-3 sm:p-4 rounded-xl border border-orange-100 flex flex-col justify-center">
+                    <div class="text-[10px] sm:text-xs text-orange-600 font-medium mb-1">เฉพาะค่า OT</div>
+                    <div class="text-base sm:text-xl font-bold text-orange-800" id="dashTotalOT">0 ฿</div>
                 </div>
-                <div class="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col justify-center">
-                    <div class="text-xs text-green-600 font-medium mb-1">รายการบันทึกแล้ว</div>
-                    <div class="text-xl font-bold text-green-800" id="dashTotalRecords">0 <span class="text-sm font-normal text-green-600">รายการ</span></div>
+                <div class="bg-green-50 p-3 sm:p-4 rounded-xl border border-green-100 flex flex-col justify-center">
+                    <div class="text-[10px] sm:text-xs text-green-600 font-medium mb-1">รายการบันทึก</div>
+                    <div class="text-base sm:text-xl font-bold text-green-800" id="dashTotalRecords">0 <span class="text-[10px] sm:text-sm font-normal text-green-600">รายการ</span></div>
                 </div>
             </div>
             
@@ -299,19 +308,19 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 border-b border-gray-200 pb-3 gap-3 shrink-0">
                 <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-history text-blue-600 mr-2"></i>ประวัติการทำงาน</h2>
                 <div class="flex gap-2">
-                    <button onclick="exportToExcel()" class="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-sm font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition">
+                    <button onclick="exportToExcel()" class="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs sm:text-sm font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition">
                         <i class="fas fa-file-excel"></i> โหลด Excel
                     </button>
-                    <a href="https://docs.google.com/spreadsheets/d/1untWAf5J8HNmNILJCv6W0CSDb4V23cZ2qz4b6eORG38/edit" target="_blank" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-sm font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition">
+                    <a href="https://docs.google.com/spreadsheets/d/1untWAf5J8HNmNILJCv6W0CSDb4V23cZ2qz4b6eORG38/edit" target="_blank" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs sm:text-sm font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition">
                         <i class="fas fa-external-link-alt"></i> ดูชีท
                     </a>
                 </div>
             </div>
             
-            <div class="overflow-x-auto border border-gray-200 rounded-xl custom-scrollbar grow">
+            <div class="overflow-x-auto border border-gray-200 rounded-xl custom-scrollbar flex-grow min-h-[300px]">
                 <table class="w-full text-left border-collapse whitespace-nowrap">
                     <thead class="bg-gray-50 sticky top-0 shadow-sm z-10">
-                        <tr class="text-sm text-gray-600">
+                        <tr class="text-xs sm:text-sm text-gray-600">
                             <th class="p-3 font-semibold">วันที่</th>
                             <th class="p-3 font-semibold">ชื่อพนักงาน</th>
                             <th class="p-3 font-semibold">รายละเอียด/เวลา</th>
@@ -319,12 +328,13 @@
                             <th class="p-3 text-center font-semibold w-24">จัดการ</th>
                         </tr>
                     </thead>
-                    <tbody id="recordsTableBody" class="text-sm divide-y divide-gray-100">
-                        </tbody>
+                    <tbody id="recordsTableBody" class="text-xs sm:text-sm divide-y divide-gray-100">
+                        <!-- JS Records go here -->
+                    </tbody>
                 </table>
                 <div id="noDataMsg" class="text-center text-gray-400 py-12">
                     <i class="fas fa-box-open text-4xl mb-3 opacity-50"></i>
-                    <p>ยังไม่มีข้อมูลในระบบ</p>
+                    <p class="text-sm">ยังไม่มีข้อมูลในระบบ</p>
                 </div>
             </div>
         </div>
@@ -606,7 +616,6 @@
                 const isWeekend = (dow === 0 || dow === 6);
                 const dayName = d.toLocaleDateString('th-TH', {weekday: 'short'});
                 
-                // สำหรับค่าเริ่มต้น: วันหยุดติ๊ก "หยุด", วันธรรมดาติ๊ก "มี OT"
                 const isDayOff = isWeekend;
                 const hasOt = !isWeekend;
                 
@@ -618,20 +627,20 @@
                 html += `
                 <tr id="tsRow-${i}" class="${rowClass} transition duration-200">
                     <td class="p-1 border-r border-gray-100 text-center">
-                        <div class="font-bold text-gray-700">${i}</div>
-                        <div class="text-[10px] ${isWeekend ? 'text-red-500 font-bold' : 'text-gray-400'}">${dayName}</div>
+                        <div class="font-bold text-gray-700 text-[11px] sm:text-sm">${i}</div>
+                        <div class="text-[9px] sm:text-[10px] ${isWeekend ? 'text-red-500 font-bold' : 'text-gray-400'}">${dayName}</div>
                     </td>
                     <td class="p-1 text-center border-r border-gray-100">
-                        <input type="checkbox" id="tsDayOff-${i}" class="ts-checkbox cb-off text-red-500 border-gray-300 focus:ring-red-400" ${isDayOff ? 'checked' : ''} onchange="toggleDayOff(${i})">
+                        <input type="checkbox" id="tsDayOff-${i}" class="ts-checkbox cb-off text-red-500 border-gray-300 focus:ring-red-400 mx-auto" ${isDayOff ? 'checked' : ''} onchange="toggleDayOff(${i})">
                     </td>
                     <td class="p-1 text-center border-r border-gray-100">
-                        <input type="checkbox" id="tsHasOt-${i}" class="ts-checkbox cb-ot text-orange-500 border-gray-300 focus:ring-orange-400" ${hasOt ? 'checked' : ''} onchange="toggleOT(${i})" ${isDayOff ? 'disabled' : ''}>
+                        <input type="checkbox" id="tsHasOt-${i}" class="ts-checkbox cb-ot text-orange-500 border-gray-300 focus:ring-orange-400 mx-auto" ${hasOt ? 'checked' : ''} onchange="toggleOT(${i})" ${isDayOff ? 'disabled' : ''}>
                     </td>
-                    <td class="p-1 px-2">
-                        <input type="number" id="tsBase-${i}" class="ts-input ts-base w-full text-center border border-gray-200 bg-white outline-none focus:ring-2 focus:ring-indigo-300 rounded p-1.5 font-medium text-indigo-700" value="${valWage}" oninput="calcTimesheetTotals()" ${isDayOff ? 'disabled' : ''}>
+                    <td class="p-1">
+                        <input type="number" id="tsBase-${i}" class="ts-input ts-base w-full min-w-[50px] text-center border border-gray-200 bg-white outline-none focus:ring-2 focus:ring-indigo-300 rounded p-1 text-[11px] sm:text-sm font-medium text-indigo-700" value="${valWage}" oninput="calcTimesheetTotals()" ${isDayOff ? 'disabled' : ''}>
                     </td>
-                    <td class="p-1 px-2">
-                        <input type="number" id="tsOt-${i}" class="ts-input ts-ot w-full text-center border border-gray-200 bg-white outline-none focus:ring-2 focus:ring-orange-300 rounded p-1.5 font-medium text-orange-600" value="${valOt}" oninput="calcTimesheetTotals()" ${isDayOff ? 'disabled' : ''}>
+                    <td class="p-1">
+                        <input type="number" id="tsOt-${i}" class="ts-input ts-ot w-full min-w-[50px] text-center border border-gray-200 bg-white outline-none focus:ring-2 focus:ring-orange-300 rounded p-1 text-[11px] sm:text-sm font-medium text-orange-600" value="${valOt}" oninput="calcTimesheetTotals()" ${isDayOff ? 'disabled' : ''}>
                     </td>
                 </tr>`;
             }
@@ -639,7 +648,6 @@
             calcTimesheetTotals();
         }
 
-        // เมื่อติ๊กช่อง "หยุด"
         function toggleDayOff(day) {
             const isOff = document.getElementById(`tsDayOff-${day}`).checked;
             const row = document.getElementById(`tsRow-${day}`);
@@ -670,7 +678,6 @@
             calcTimesheetTotals();
         }
 
-        // เมื่อติ๊กช่อง "ทำ OT"
         function toggleOT(day) {
             const hasOt = document.getElementById(`tsHasOt-${day}`).checked;
             const otInput = document.getElementById(`tsOt-${day}`);
@@ -696,14 +703,13 @@
                 if(isOff) {
                     offDates.push(i);
                 } else {
-                    // หาผลรวมของ (ค่าแรง + โอที) ของแต่ละวัน
                     const bVal = parseFloat(document.getElementById(`tsBase-${i}`).value) || 0;
                     const oVal = parseFloat(document.getElementById(`tsOt-${i}`).value) || 0;
                     const dailyTotal = bVal + oVal;
                     
                     if(dailyTotal > 0) {
                         if (!combinedWageGroups[dailyTotal]) combinedWageGroups[dailyTotal] = 0;
-                        combinedWageGroups[dailyTotal]++; // นับจำนวนวันที่มีรายได้รวมเท่ากัน
+                        combinedWageGroups[dailyTotal]++;
                     }
                 }
             }
@@ -722,17 +728,19 @@
                     otDays++;
                 }
             });
+            
+            const lumpAdv = parseFloat(document.getElementById('tsLumpAdvance').value) || 0;
+            sumAdv += lumpAdv;
 
-            // ยอดเบิกเหมาจ่ายไม่มีแล้ว (sumAdv เป็น 0)
-            const net = sumBase + sumOt;
+            const net = sumBase + sumOt - sumAdv;
 
             document.getElementById('tsSumBase').innerText = sumBase.toLocaleString();
             document.getElementById('tsSumOt').innerText = sumOt.toLocaleString();
             document.getElementById('tsGrandTotal').innerText = net.toLocaleString() + ' ฿';
             
             const totalEl = document.getElementById('tsGrandTotal');
-            if(net < 0) totalEl.className = 'text-xl sm:text-2xl font-bold text-red-400';
-            else totalEl.className = 'text-xl sm:text-2xl font-bold text-green-400';
+            if(net < 0) totalEl.className = 'text-base sm:text-xl font-bold text-red-400';
+            else totalEl.className = 'text-base sm:text-xl font-bold text-green-400';
             
             return { sumBase, sumOt, sumAdv, net, workDays, otDays, offDates, combinedWageGroups };
         }
@@ -845,14 +853,14 @@
             loading.classList.add('hidden');
             loading.classList.remove('flex');
 
-            // Reset form based on type
             if(rec.type === 'daily') {
                 document.getElementById('empName').value = '';
                 document.getElementById('advancePay').value = '0';
                 document.getElementById('empName').focus();
             } else {
                 document.getElementById('tsEmpName').value = '';
-                generateTimesheet(); // reset table
+                document.getElementById('tsLumpAdvance').value = '0';
+                generateTimesheet(); 
                 document.getElementById('tsEmpName').focus();
             }
 
@@ -886,17 +894,17 @@
                 tr.className = "hover:bg-blue-50/50 transition group";
                 
                 const typeBadge = rec.type === 'monthly' ? `<span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[10px] ml-2">รายเดือน</span>` : '';
-                const timeStr = rec.type === 'monthly' ? `<span class="text-indigo-600 font-medium">${rec.displayTime}</span>` : rec.displayTime;
+                const timeStr = rec.type === 'monthly' ? `<span class="text-indigo-600 font-medium text-xs sm:text-sm">${rec.displayTime}</span>` : rec.displayTime;
 
                 tr.innerHTML = `
                     <td class="p-3 whitespace-nowrap text-gray-600">${formatThaiDate(rec.date)}</td>
                     <td class="p-3 font-bold text-gray-800">${rec.name} ${typeBadge}</td>
-                    <td class="p-3 text-xs text-gray-500">${timeStr}</td>
+                    <td class="p-3 text-xs sm:text-sm text-gray-500">${timeStr}</td>
                     <td class="p-3 text-right">
-                        <div class="font-bold text-base ${rec.totalPay < 0 ? 'text-red-500' : 'text-green-600'}">${rec.totalPay.toLocaleString()}</div>
+                        <div class="font-bold text-sm sm:text-base ${rec.totalPay < 0 ? 'text-red-500' : 'text-green-600'}">${rec.totalPay.toLocaleString()}</div>
                         ${rec.advancePay > 0 ? `<div class="text-[10px] text-red-400 mt-0.5">เบิก: -${rec.advancePay.toLocaleString()}</div>` : ''}
                     </td>
-                    <td class="p-3 text-center whitespace-nowrap opacity-50 group-hover:opacity-100 transition">
+                    <td class="p-3 text-center whitespace-nowrap opacity-100 sm:opacity-50 sm:group-hover:opacity-100 transition">
                         <button onclick="openPrintModal('${rec.id}')" class="text-blue-500 hover:bg-blue-100 p-2 rounded-lg transition mr-1" title="พิมพ์/โหลดรูป">
                             <i class="fas fa-print"></i>
                         </button>
@@ -965,9 +973,8 @@
                 let offDaysText = r.offDates && r.offDates.length > 0 ? `${r.offDates.join(', ')}` : '-';
                 
                 let wageGroupRows = '';
-                // ดึงข้อมูลกลุ่มเรทเงิน (ค่าแรง+OT) มาแสดง โดยไม่ใช้การหารเฉลี่ย
                 if (r.combinedWageGroups && Object.keys(r.combinedWageGroups).length > 0) {
-                    let wageRates = Object.keys(r.combinedWageGroups).sort((a,b) => b - a); // เรียงจากเรทมากไปน้อย
+                    let wageRates = Object.keys(r.combinedWageGroups).sort((a,b) => b - a);
                     wageRates.forEach(rate => {
                         let days = r.combinedWageGroups[rate];
                         let totalForRate = days * parseFloat(rate);
@@ -979,7 +986,6 @@
                         `;
                     });
                 } else {
-                    // หากเป็นข้อมูลเก่าที่ไม่มี combinedWageGroups ให้แสดงบรรทัดเดียวไปเลย (ไม่หารเฉลี่ย)
                     let totalCombined = (r.baseWage || 0) + (r.otPay || 0);
                     wageGroupRows = `
                         <tr class="border-b border-dashed border-gray-200">
@@ -1133,7 +1139,7 @@
 
             document.getElementById('dashTotalPay').innerText = totalPay.toLocaleString() + ' ฿';
             document.getElementById('dashTotalOT').innerText = totalOT.toLocaleString() + ' ฿';
-            document.getElementById('dashTotalRecords').innerHTML = `${records.length} <span class="text-sm font-normal text-green-600">รายการ</span>`;
+            document.getElementById('dashTotalRecords').innerHTML = `${records.length} <span class="text-[10px] sm:text-sm font-normal text-green-600">รายการ</span>`;
 
             renderCharts(dateData, basePay, totalOT);
         }
