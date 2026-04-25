@@ -200,15 +200,18 @@
                 <div id="timesheetModeContainer" class="hidden animate-fade-in flex flex-col h-full">
                     <form id="timesheetForm" class="flex flex-col h-full space-y-4">
                         
-                        <div class="bg-indigo-50 text-indigo-800 text-xs p-3 rounded-lg border border-indigo-100 flex gap-2 items-start shrink-0">
-                            <i class="fas fa-info-circle mt-0.5 text-indigo-500"></i>
-                            <p><b>ตารางทำเงินเดือน:</b> ติ๊กเลือก "หยุด" หรือ "ทำ OT" ระบบจะคำนวณและหยอดยอดเงินให้อัตโนมัติ (แก้ไขยอดรายวันได้เลย)</p>
+                        <div class="bg-indigo-50 text-indigo-800 text-xs p-3 rounded-lg border border-indigo-100 flex flex-col sm:flex-row justify-between items-start sm:items-center shrink-0 gap-2">
+                            <div class="flex gap-2 items-start">
+                                <i class="fas fa-info-circle mt-0.5 text-indigo-500"></i>
+                                <p><b>ตารางทำเงินเดือน:</b> ติ๊ก "หยุด" หรือ "ทำ OT" ระบบจะคำนวณอัตโนมัติ (แก้ไขยอดได้)</p>
+                            </div>
+                            <span id="draftIndicator" class="text-[10px] text-green-600 font-bold bg-green-100 px-2 py-0.5 rounded-full whitespace-nowrap"></span>
                         </div>
                         
                         <div class="grid grid-cols-2 gap-3 shrink-0">
                             <div class="col-span-2">
                                 <label class="block text-xs font-semibold text-gray-700 mb-1">ชื่อพนักงาน</label>
-                                <input type="text" id="tsEmpName" required class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white text-sm" placeholder="ระบุชื่อ-สกุล">
+                                <input type="text" id="tsEmpName" required class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white text-sm" placeholder="ระบุชื่อ-สกุล" oninput="saveTimesheetDraft()">
                             </div>
 
                             <div class="col-span-2 sm:col-span-1">
@@ -219,11 +222,11 @@
                             <div class="col-span-2 sm:col-span-1 flex gap-2">
                                 <div class="w-1/2">
                                     <label class="block text-xs font-semibold text-gray-700 mb-1" title="ค่าแรงตั้งต้นต่อวัน">ค่าแรง/วัน</label>
-                                    <input type="number" id="tsDefaultWage" value="450" class="w-full border border-gray-300 rounded-lg p-2 outline-none font-bold text-indigo-600 text-sm text-center" onchange="generateTimesheet()">
+                                    <input type="number" id="tsDefaultWage" value="450" class="w-full border border-gray-300 rounded-lg p-2 outline-none font-bold text-indigo-600 text-sm text-center" oninput="saveTimesheetDraft()">
                                 </div>
                                 <div class="w-1/2">
                                     <label class="block text-xs font-semibold text-gray-700 mb-1" title="ค่าเหมา OT ต่อวัน (เช่น 4 ชม = 200)">เหมา OT</label>
-                                    <input type="number" id="tsDefaultOt" value="200" class="w-full border border-gray-300 rounded-lg p-2 outline-none font-bold text-orange-500 text-sm text-center" onchange="generateTimesheet()">
+                                    <input type="number" id="tsDefaultOt" value="200" class="w-full border border-gray-300 rounded-lg p-2 outline-none font-bold text-orange-500 text-sm text-center" oninput="saveTimesheetDraft()">
                                 </div>
                             </div>
                         </div>
@@ -260,14 +263,19 @@
                         </div>
 
                         <!-- เอาเบิกเงินสะสมยอดรวมทั้งเดือน กลับคืนมาไว้ตรงนี้ -->
-                        <div class="bg-red-50 p-2.5 sm:p-3 rounded-lg border border-red-100 flex justify-between items-center shrink-0">
+                        <div class="bg-red-50 p-2.5 sm:p-3 rounded-lg border border-red-100 flex justify-between items-center shrink-0 mt-2">
                             <label class="text-xs sm:text-sm font-bold text-red-700"><i class="fas fa-hand-holding-usd mr-1"></i> เบิกเงินสะสม <span class="hidden sm:inline">(ยอดรวมทั้งเดือน)</span></label>
                             <input type="number" id="tsLumpAdvance" value="0" min="0" class="w-24 sm:w-1/3 border border-red-200 rounded-lg p-1.5 sm:p-2 outline-none font-bold text-red-600 text-right bg-white focus:ring-2 focus:ring-red-400 shadow-sm text-sm sm:text-base" oninput="calcTimesheetTotals()" placeholder="ระบุยอดเงิน">
                         </div>
 
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 text-lg shrink-0 mt-2">
-                            <i class="fas fa-file-invoice-dollar"></i> ตรวจสอบและบันทึก
-                        </button>
+                        <div class="flex gap-2 mt-4 shrink-0">
+                            <button type="button" onclick="clearTimesheetDraft()" class="w-1/3 bg-gray-200 text-gray-700 font-bold py-3.5 px-2 rounded-xl hover:bg-gray-300 transition text-sm sm:text-base">
+                                <i class="fas fa-eraser"></i> ล้างข้อมูล
+                            </button>
+                            <button type="submit" class="w-2/3 bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 text-sm sm:text-base">
+                                <i class="fas fa-file-invoice-dollar"></i> ตรวจสอบและบันทึก
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -438,8 +446,9 @@
         let currentPrintRecord = null;
         let empChartInstance = null;
         let typeChartInstance = null;
+        let isRestoringDraft = false; // ตัวแปรสำหรับเช็คสถานะการกู้คืนข้อมูลร่าง
 
-        // Local Storage
+        // Local Storage สำหรับประวัติการทำงาน
         function loadFromLocalStorage() {
             const saved = localStorage.getItem('dailyWageRecords');
             if (saved) records = JSON.parse(saved);
@@ -448,17 +457,139 @@
             localStorage.setItem('dailyWageRecords', JSON.stringify(records));
         }
 
+        // ==========================================
+        // Local Storage สำหรับร่างตารางรายเดือน (Auto-Save)
+        // ==========================================
+        function saveTimesheetDraft() {
+            if (isRestoringDraft) return; // ไม่บันทึกซ้ำตอนกำลังกู้คืนข้อมูล
+
+            const monthVal = document.getElementById('tsMonth').value;
+            if(!monthVal) return;
+
+            const draft = {
+                empName: document.getElementById('tsEmpName').value,
+                month: monthVal,
+                defaultWage: document.getElementById('tsDefaultWage').value,
+                defaultOt: document.getElementById('tsDefaultOt').value,
+                lumpAdvance: document.getElementById('tsLumpAdvance').value,
+                rows: {}
+            };
+
+            const daysInMonth = document.querySelectorAll('.ts-base').length;
+            for(let i=1; i<=daysInMonth; i++) {
+                const dayOffEl = document.getElementById(`tsDayOff-${i}`);
+                if(!dayOffEl) continue;
+                draft.rows[i] = {
+                    isOff: dayOffEl.checked,
+                    hasOt: document.getElementById(`tsHasOt-${i}`).checked,
+                    base: document.getElementById(`tsBase-${i}`).value,
+                    ot: document.getElementById(`tsOt-${i}`).value
+                };
+            }
+            
+            localStorage.setItem('timesheetDraft', JSON.stringify(draft));
+            
+            const ind = document.getElementById('draftIndicator');
+            if(ind) {
+                const time = new Date().toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+                ind.innerText = 'บันทึกร่างเมื่อ ' + time;
+            }
+        }
+
+        function loadTimesheetDraft() {
+            const saved = localStorage.getItem('timesheetDraft');
+            if(!saved) return false;
+
+            try {
+                const draft = JSON.parse(saved);
+                if(!draft.month) return false;
+
+                isRestoringDraft = true; 
+
+                document.getElementById('tsEmpName').value = draft.empName || '';
+                document.getElementById('tsMonth').value = draft.month;
+                document.getElementById('tsDefaultWage').value = draft.defaultWage || 450;
+                document.getElementById('tsDefaultOt').value = draft.defaultOt || 200;
+                document.getElementById('tsLumpAdvance').value = draft.lumpAdvance || 0;
+
+                // สร้างแถวตามเดือนที่ร่างไว้ โดยปิดการบันทึกร่างซ้อน
+                generateTimesheet(false); 
+
+                // เติมข้อมูลลงช่องต่างๆ
+                for(let i in draft.rows) {
+                    const r = draft.rows[i];
+                    const dayOffEl = document.getElementById(`tsDayOff-${i}`);
+                    if(!dayOffEl) continue;
+
+                    dayOffEl.checked = r.isOff;
+                    document.getElementById(`tsHasOt-${i}`).checked = r.hasOt;
+                    document.getElementById(`tsBase-${i}`).value = r.base;
+                    document.getElementById(`tsOt-${i}`).value = r.ot;
+
+                    // ปรับหน้าตาตาราง (ปิด/เปิดช่องกรอก) ตามข้อมูลร่าง
+                    const row = document.getElementById(`tsRow-${i}`);
+                    const otCb = document.getElementById(`tsHasOt-${i}`);
+                    const baseInput = document.getElementById(`tsBase-${i}`);
+                    const otInput = document.getElementById(`tsOt-${i}`);
+                    
+                    if (r.isOff) {
+                        row.classList.add('bg-gray-100', 'opacity-60', 'grayscale-[50%]');
+                        row.classList.remove('hover:bg-indigo-50/50');
+                        otCb.disabled = true;
+                        baseInput.disabled = true;
+                        otInput.disabled = true;
+                    } else {
+                        row.classList.remove('bg-gray-100', 'opacity-60', 'grayscale-[50%]');
+                        row.classList.add('hover:bg-indigo-50/50');
+                        otCb.disabled = false;
+                        baseInput.disabled = false;
+                        otInput.disabled = false;
+                    }
+                }
+                
+                calcTimesheetTotals(false); // คำนวณยอดโดยไม่เซฟซ้ำ
+                
+                isRestoringDraft = false; 
+                
+                const ind = document.getElementById('draftIndicator');
+                if(ind) ind.innerText = 'กู้คืนร่างสำเร็จ';
+                return true;
+
+            } catch(e) {
+                console.error('โหลดร่างไม่สำเร็จ', e);
+                isRestoringDraft = false;
+                return false;
+            }
+        }
+
+        function clearTimesheetDraft() {
+            if(confirm('ต้องการล้างข้อมูลในตารางรายเดือนทั้งหมด และเริ่มใหม่ใช่หรือไม่?')) {
+                localStorage.removeItem('timesheetDraft');
+                document.getElementById('tsEmpName').value = '';
+                document.getElementById('tsLumpAdvance').value = '0';
+                
+                const now = new Date();
+                document.getElementById('tsMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                
+                generateTimesheet(); 
+                
+                const ind = document.getElementById('draftIndicator');
+                if(ind) ind.innerText = '';
+            }
+        }
+
         // Init
         document.getElementById('workDate').valueAsDate = new Date();
         loadFromLocalStorage();
         updateCalculations();
         renderTable();
         
-        // Month Picker Default
-        const now = new Date();
-        document.getElementById('tsMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        // สร้างตารางรายเดือนเตรียมไว้เลย
-        generateTimesheet();
+        // ลองโหลดข้อมูลร่างตารางรายเดือน ถ้าไม่มีให้สร้างตารางใหม่ของเดือนปัจจุบัน
+        if (!loadTimesheetDraft()) {
+            const now = new Date();
+            document.getElementById('tsMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            generateTimesheet();
+        }
 
         // ==========================================
         // UI Tabs Logic
@@ -598,7 +729,7 @@
         // ==========================================
         // Mode 2: ตารางรายเดือน (Monthly Timesheet แบบใหม่)
         // ==========================================
-        function generateTimesheet() {
+        function generateTimesheet(triggerSaveDraft = true) {
             const monthVal = document.getElementById('tsMonth').value;
             if(!monthVal) return;
             
@@ -645,7 +776,12 @@
                 </tr>`;
             }
             tbody.innerHTML = html;
+            
+            // ระงับการเซฟร่างชั่วคราวตอนกดเปลี่ยนเดือน ถ้ากำหนด triggerSaveDraft=false
+            const previousState = isRestoringDraft;
+            if (!triggerSaveDraft) isRestoringDraft = true;
             calcTimesheetTotals();
+            isRestoringDraft = previousState;
         }
 
         function toggleDayOff(day) {
@@ -691,7 +827,7 @@
             calcTimesheetTotals();
         }
 
-        function calcTimesheetTotals() {
+        function calcTimesheetTotals(triggerSave = true) {
             let sumBase = 0, sumOt = 0, sumAdv = 0;
             let workDays = 0, otDays = 0;
             let offDates = [];
@@ -742,6 +878,9 @@
             if(net < 0) totalEl.className = 'text-base sm:text-xl font-bold text-red-400';
             else totalEl.className = 'text-base sm:text-xl font-bold text-green-400';
             
+            // เรียกเซฟร่างทุกครั้งที่มีการคำนวณใหม่ (ถ้าไม่ได้ระงับไว้)
+            if (triggerSave && !isRestoringDraft) saveTimesheetDraft();
+
             return { sumBase, sumOt, sumAdv, net, workDays, otDays, offDates, combinedWageGroups };
         }
 
@@ -858,6 +997,9 @@
                 document.getElementById('advancePay').value = '0';
                 document.getElementById('empName').focus();
             } else {
+                // เมื่อบันทึกรายเดือนเสร็จ ให้ล้างข้อมูลร่างทิ้งทันที
+                localStorage.removeItem('timesheetDraft');
+                document.getElementById('draftIndicator').innerText = '';
                 document.getElementById('tsEmpName').value = '';
                 document.getElementById('tsLumpAdvance').value = '0';
                 generateTimesheet(); 
